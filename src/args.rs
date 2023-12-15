@@ -1,14 +1,12 @@
 use clap::Parser;
+use std::path::PathBuf;
 
-/// Simple program to greet a person
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
-struct Args {
-    /// Name of the person to greet
+pub struct Inp {
     #[arg(short, long)]
-    name: String,
+    pub server: bool,
 
-    /// Number of times to greet
-    #[arg(short, long, default_value_t = 1)]
-    count: u8,
+    #[arg(short, long)]
+    pub input: Option<PathBuf>,
 }
