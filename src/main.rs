@@ -86,8 +86,5 @@ fn to_keys(c: char) -> Result<(Key, bool)> {
 }
 
 fn main() -> Result<()> {
-    let _virtual_device = VirtualDeviceBuilder::new()?
-        .build();
-
     Ok(())
 }
