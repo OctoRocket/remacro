@@ -1,6 +1,12 @@
 use anyhow::Result;
-use evdev::{uinput::VirtualDeviceBuilder, Key};
-use std::os::unix::net::{UnixListener, UnixStream};
+use evdev::{
+    uinput::VirtualDeviceBuilder,
+    Key,
+};
+use std::{
+    path::{Path, PathBuf},
+    os::unix::net::{UnixListener, UnixStream}, fs::remove_file, io::Read,
+};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -83,12 +89,18 @@ fn to_keys(c: char) -> Result<(Key, bool)> {
     }
 }
 
-fn handle_input(input: UnixStream) {
-    todo!()
+fn handle_input(mut input: UnixStream) {
+    let mut buf = String::new();
+    match input.read_to_string(&mut buf) {
+        Ok(_) => (),
+        Err(e) => println!("FAILED to read transmitted data with error: {e}."),
+    }
+    println!("{}", buf);
 }
 
-pub fn launch_server() -> Result<()> {
-    let listener = UnixListener::bind("/tmp/remacro-socket")?;
+pub fn launch_server(addr: PathBuf) -> Result<()> {
+    let _ = remove_file(&addr);
+    let listener = UnixListener::bind(&addr)?;
 
     for input in listener.incoming() {
         match input {
