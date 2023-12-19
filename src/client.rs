@@ -2,7 +2,7 @@ use std::{
     fs::read_to_string,
     path::PathBuf,
     os::unix::net::UnixStream,
-	io::Write,
+    io::Write,
 };
 use anyhow::Result;
 
