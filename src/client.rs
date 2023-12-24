@@ -1,7 +1,8 @@
 use std::{
     fs::read_to_string,
     path::PathBuf,
-    os::unix::net::UnixStream, io::Write,
+    os::unix::net::UnixStream,
+    io::Write,
 };
 use anyhow::Result;
 
