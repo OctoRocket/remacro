@@ -6,7 +6,7 @@ use std::{
 };
 use anyhow::Result;
 
-pub fn launch_client(path: PathBuf) -> Result<()> {
+pub fn client(path: PathBuf) -> Result<()> {
     let data = read_to_string(path)?;
 
     // Send data through socket.

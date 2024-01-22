@@ -1,3 +1,9 @@
+#![deny(
+    clippy::all,
+    clippy::pedantic,
+)]
+#![warn(clippy::nursery)]
+
 mod args;
 mod client;
 mod server;
@@ -12,15 +18,14 @@ fn main() -> Result<()> {
     let addr = PathBuf::from("/tmp/remacro-socket");
 
     if args.server {
-        server::launch_server(addr)?;
+        server::launch(&addr)?;
     } else if let Some(args) = args.input {
-        match client::launch_client(args) {
+        match client::client(args) {
             Ok(_) => (),
             Err(e) => println!("FAILED to transmit with error: {e}"),
-
         }
     } else {
-        println!("Invalid arguments provided.")
+        println!("Invalid arguments provided.");
     }
 
     Ok(())
