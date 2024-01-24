@@ -6,6 +6,8 @@ use evdev::{
     },
     Key,
     AttributeSet,
+    InputEvent,
+    EventType,
 };
 use std::{
     path::PathBuf,
@@ -16,6 +18,8 @@ use std::{
     fs::remove_file,
     io::Read,
     collections::HashMap,
+    time::Duration,
+    thread::sleep,
 };
 use thiserror::Error;
 use lazy_static::lazy_static;
@@ -96,11 +100,14 @@ lazy_static! {
         ('}' , (Key::KEY_RIGHTBRACE , true )),
         ('|' , (Key::KEY_BACKSLASH  , true )),
         ('~' , (Key::KEY_GRAVE      , true )),
+        ('\n', (Key::KEY_ENTER      , false)),
     ]);
 }
 
-fn to_keys(input: &str) -> Result<Vec<(Key, bool)>> {
-    let mut keys = input.chars().map(|c| AVAILABLE_KEYS.get(&c));
+const DELAY: Duration = Duration::from_millis(50);
+
+fn to_keys(text: &str) -> Result<Vec<(Key, bool)>> {
+    let mut keys = text.chars().map(|c| AVAILABLE_KEYS.get(&c));
     if keys.any(|k| k.is_none()) {
         return Err(ServerError::Parse().into());
     }
@@ -108,8 +115,24 @@ fn to_keys(input: &str) -> Result<Vec<(Key, bool)>> {
     Ok(keys.map(|c| *c.unwrap()).collect())
 }
 
-fn type_string(input: &[(Key, bool)], device: &mut VirtualDevice) {
-    let code = KeyCode::;
+fn press_key(keycode: u16, device: &mut VirtualDevice) {
+    let down_event = InputEvent::new(EventType::KEY, keycode, 1);
+    device.emit(&[down_event]).unwrap();
+}
+
+fn type_string(key_string: &[(Key, bool)], device: &mut VirtualDevice) {
+    for key_combo in key_string {
+        let (key, shift) = *key_combo;
+        let keycode = key.code();
+
+        if shift {
+            press_key(Key::KEY_LEFTSHIFT.code(), device);
+            sleep(DELAY);
+        }
+
+        press_key(keycode, device);
+        sleep(DELAY);
+    }
 }
 
 fn handle_input(mut input: UnixStream, device: &mut VirtualDevice) -> Result<()> {

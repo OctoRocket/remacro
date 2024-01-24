@@ -21,7 +21,7 @@ fn main() -> Result<()> {
         server::launch(&addr)?;
     } else if let Some(args) = args.input {
         match client::client(args) {
-            Ok(_) => (),
+            Ok(()) => (),
             Err(e) => println!("FAILED to transmit with error: {e}"),
         }
     } else {
