@@ -27,7 +27,7 @@ use lazy_static::lazy_static;
 #[derive(Debug, Error)]
 enum ServerError {
     #[error("Invalid character in string.")]
-    Parse(),
+    Parse,
 }
 
 lazy_static! {
@@ -72,13 +72,14 @@ lazy_static! {
         ('.' , (Key::KEY_DOT        , false)),
         ('/' , (Key::KEY_SLASH      , false)),
         (';' , (Key::KEY_SEMICOLON  , false)),
-        ('\'', (Key::KEY_APOSTROPHE , false)),
         ('[' , (Key::KEY_LEFTBRACE  , false)),
         (']' , (Key::KEY_RIGHTBRACE , false)),
-        ('\\', (Key::KEY_BACKSLASH  , false)),
         ('`' , (Key::KEY_GRAVE      , false)),
         ('-' , (Key::KEY_MINUS      , false)),
         ('=' , (Key::KEY_EQUAL      , false)),
+        ('\'', (Key::KEY_APOSTROPHE , false)),
+        ('\\', (Key::KEY_BACKSLASH  , false)),
+        ('\n', (Key::KEY_ENTER      , false)),
         ('!' , (Key::KEY_1          , true )),
         ('@' , (Key::KEY_2          , true )),
         ('#' , (Key::KEY_3          , true )),
@@ -100,7 +101,32 @@ lazy_static! {
         ('}' , (Key::KEY_RIGHTBRACE , true )),
         ('|' , (Key::KEY_BACKSLASH  , true )),
         ('~' , (Key::KEY_GRAVE      , true )),
-        ('\n', (Key::KEY_ENTER      , false)),
+        ('A' , (Key::KEY_A          , true )),
+        ('B' , (Key::KEY_B          , true )),
+        ('C' , (Key::KEY_C          , true )),
+        ('D' , (Key::KEY_D          , true )),
+        ('E' , (Key::KEY_E          , true )),
+        ('F' , (Key::KEY_F          , true )),
+        ('G' , (Key::KEY_G          , true )),
+        ('H' , (Key::KEY_H          , true )),
+        ('I' , (Key::KEY_I          , true )),
+        ('J' , (Key::KEY_J          , true )),
+        ('K' , (Key::KEY_K          , true )),
+        ('L' , (Key::KEY_L          , true )),
+        ('M' , (Key::KEY_M          , true )),
+        ('N' , (Key::KEY_N          , true )),
+        ('O' , (Key::KEY_O          , true )),
+        ('P' , (Key::KEY_P          , true )),
+        ('Q' , (Key::KEY_Q          , true )),
+        ('R' , (Key::KEY_R          , true )),
+        ('S' , (Key::KEY_S          , true )),
+        ('T' , (Key::KEY_T          , true )),
+        ('U' , (Key::KEY_U          , true )),
+        ('V' , (Key::KEY_V          , true )),
+        ('W' , (Key::KEY_W          , true )),
+        ('X' , (Key::KEY_X          , true )),
+        ('Y' , (Key::KEY_Y          , true )),
+        ('Z' , (Key::KEY_Z          , true )),
     ]);
 }
 
@@ -109,7 +135,7 @@ const DELAY: Duration = Duration::from_millis(50);
 fn to_keys(text: &str) -> Result<Vec<(Key, bool)>> {
     let mut keys = text.chars().map(|c| AVAILABLE_KEYS.get(&c));
     if keys.any(|k| k.is_none()) {
-        return Err(ServerError::Parse().into());
+        return Err(ServerError::Parse.into());
     }
 
     Ok(keys.map(|c| *c.unwrap()).collect())
@@ -120,6 +146,11 @@ fn press_key(keycode: u16, device: &mut VirtualDevice) {
     device.emit(&[down_event]).unwrap();
 }
 
+fn release_key(keycode: u16, device: &mut VirtualDevice) {
+    let down_event = InputEvent::new(EventType::KEY, keycode, 0);
+    device.emit(&[down_event]).unwrap();
+}
+
 fn type_string(key_string: &[(Key, bool)], device: &mut VirtualDevice) {
     for key_combo in key_string {
         let (key, shift) = *key_combo;
@@ -127,11 +158,13 @@ fn type_string(key_string: &[(Key, bool)], device: &mut VirtualDevice) {
 
         if shift {
             press_key(Key::KEY_LEFTSHIFT.code(), device);
-            sleep(DELAY);
         }
 
         press_key(keycode, device);
         sleep(DELAY);
+
+        release_key(keycode, device);
+        release_key(Key::KEY_LEFTSHIFT.code(), device);
     }
 }
 
@@ -160,7 +193,10 @@ pub fn launch(addr: &PathBuf) -> Result<()> {
 
     for input in listener.incoming() {
         match input {
-            Ok(input) => handle_input(input, &mut virt_device)?,
+            Ok(input) => {
+                println!("Recieved signal.");
+                handle_input(input, &mut virt_device)?;
+            },
             Err(e) => println!("Connection failed with error: {e}"),
         }
     }

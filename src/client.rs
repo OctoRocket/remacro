@@ -1,15 +1,24 @@
 use std::{
-    fs::read_to_string,
-    path::PathBuf,
+    path::Path,
     os::unix::net::UnixStream,
     io::Write,
 };
 use anyhow::Result;
+use thiserror::Error;
 
-pub fn client(path: PathBuf) -> Result<()> {
-    let data = read_to_string(path)?;
+#[derive(Debug, Error)]
+enum ClientError {
+    #[error("Socket does not exist! Is the server running?")]
+    Socket,
+}
+
+pub fn client(data: &str, path: &Path) -> Result<()> {
+
+    if !path.exists() {
+        return Err(ClientError::Socket.into());
+    };
 
     // Send data through socket.
-    UnixStream::connect("/tmp/remacro-socket")?.write_all(data.as_bytes())?;
+    UnixStream::connect(path)?.write_all(data.as_bytes())?;
     Ok(())
 }

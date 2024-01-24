@@ -8,9 +8,12 @@ mod args;
 mod client;
 mod server;
 
-use std::path::PathBuf;
+use std::{
+    fs::read_to_string,
+    path::PathBuf,
+};
 
-use anyhow::Result;
+use anyhow::{Result, Context};
 use clap::Parser;
 
 fn main() -> Result<()> {
@@ -19,8 +22,15 @@ fn main() -> Result<()> {
 
     if args.server {
         server::launch(&addr)?;
-    } else if let Some(args) = args.input {
-        match client::client(args) {
+    } else if let Some(input) = args.input {
+        let data = read_to_string(input).context("Input file does not exist.")?;
+
+        match client::client(&data, &addr) {
+            Ok(()) => (),
+            Err(e) => println!("FAILED to transmit with error: {e}"),
+        }
+    } else if let Some(message) = args.message {
+        match client::client(&message, &addr) {
             Ok(()) => (),
             Err(e) => println!("FAILED to transmit with error: {e}"),
         }

@@ -9,4 +9,7 @@ pub struct Inp {
 
     #[arg(short, long)]
     pub input: Option<PathBuf>,
+
+    #[arg(short, long)]
+    pub message: Option<String>,
 }
