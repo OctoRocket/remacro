@@ -12,6 +12,7 @@ keywords = ["macro", "linux", "keyboard", "binary"]
 [dependencies]
 anyhow = "1.0.75"
 clap = { version = "4.4.11", features = ["derive"] }
+ctrlc = "3.4.4"
 evdev = "0.12.1"
 lazy_static = "1.4.0"
 thiserror = "1.0.50"

@@ -20,6 +20,7 @@ use std::{
     collections::HashMap,
     time::Duration,
     thread::sleep,
+    process::exit,
 };
 use thiserror::Error;
 use lazy_static::lazy_static;
@@ -174,15 +175,23 @@ fn handle_input(mut input: UnixStream, device: &mut VirtualDevice) -> Result<()>
         Ok(_) => (),
         Err(e) => println!("FAILED to read transmitted data with error: {e}."),
     }
+
+    eprintln!("{buf}");
     type_string(&to_keys(&buf)?, device);
 
     Ok(())
 }
 
 pub fn launch(addr: &PathBuf) -> Result<()> {
+    let handler_addr = addr.clone();
+    ctrlc::try_set_handler(move || {
+        let _ = remove_file(&handler_addr);
+        exit(1)
+    })?;
+
     let mut keys: AttributeSet<Key> = AVAILABLE_KEYS.values().map(|p| p.0).collect();
     keys.insert(Key::KEY_LEFTSHIFT);
-
+    
     let mut virt_device = VirtualDeviceBuilder::new()?
         .name("Macro Keyboard")
         .with_keys(&keys)?
@@ -194,7 +203,7 @@ pub fn launch(addr: &PathBuf) -> Result<()> {
     for input in listener.incoming() {
         match input {
             Ok(input) => {
-                println!("Recieved signal.");
+                eprint!("Recieved signal: ");
                 handle_input(input, &mut virt_device)?;
             },
             Err(e) => println!("Connection failed with error: {e}"),

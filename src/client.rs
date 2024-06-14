@@ -13,7 +13,6 @@ enum ClientError {
 }
 
 pub fn client(data: &str, path: &Path) -> Result<()> {
-
     if !path.exists() {
         return Err(ClientError::Socket.into());
     };
